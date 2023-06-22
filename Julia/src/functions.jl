@@ -48,24 +48,13 @@ end
 function montecarlo(B::Box)
     Elist = Real[];
     Avrg  = Real[];
-    Atoms = B.atoms;
 
     en = energy(B);
     sumEnergy = en;
 
-    for i in 1:Steps
-        a = rand(Atoms);
-        ΔE = spinFlipDeltaEnergy(B,a);
-        if ΔE < 0
-            a.σ = -a.σ;
-            en += ΔE;
-        else
-            p = rand();
-            if p<exp(-ΔE/T)
-                a.σ = -a.σ;
-                en += ΔE;
-            end
-        end
+    for i in 1:Steps # do at max Step steps
+        
+        en += spinFlipMove(B);
         sumEnergy += en; 
         # push!(Elist, en);
         if i%avrgStep == 0
@@ -77,3 +66,18 @@ function montecarlo(B::Box)
     return Avrg;
 end
 
+function spinFlipMove(B::Box)
+    a = rand(B.atoms);
+    ΔE = spinFlipDeltaEnergy(B,a);
+    if ΔE < 0
+        a.σ = -a.σ;
+        return ΔE; # spin flip accepted
+    else
+        p = rand();
+        if p<exp(-ΔE/T)
+            a.σ = -a.σ;
+            return ΔE; # spin flip accepted
+        end
+    end
+    return 0.0; # flipping discarded
+end
