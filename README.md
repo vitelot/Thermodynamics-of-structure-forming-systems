@@ -1,6 +1,6 @@
 [article]: https://doi.org/10.1038/s41467-021-21272-7
 [supplementary]: https://static-content.springer.com/esm/art%3A10.1038%2Fs41467-021-21272-7/MediaObjects/41467_2021_21272_MOESM1_ESM.pdf
-[figure]: ./Monte\ Carlo\ simulation\ of\ the\ fully\ connected\ Ising\ model.png"
+[figure]: ./Monte\ Carlo\ simulation\ of\ the\ fully\ connected\ Ising\ model.png
 
 # Montecarlo simulation of structure-forming systems
 
