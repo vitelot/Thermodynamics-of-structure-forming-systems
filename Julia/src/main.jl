@@ -7,6 +7,8 @@ include("functions.jl");
 
 function main()
     B = initializeBox(N);
+    montecarlo(B);
 end
 
-main()
+Elist = main();
+plot(Elist)

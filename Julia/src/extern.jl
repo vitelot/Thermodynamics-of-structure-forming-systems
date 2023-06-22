@@ -1,3 +1,5 @@
+using Plots;
+
 Real = Float64;
 
 # parameters
