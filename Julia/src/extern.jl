@@ -1,7 +1,10 @@
 Real = Float64;
 
 # parameters
-N::Int = 20; # total number of atoms
+N::Int = 200; # total number of atoms
+T::Real = 1.0;  # temperature
+H::Real = 0.0; # external magnetic field
+J::Real = 1.0; # spin-spin coupling
 
 # structures
 mutable struct Atom
