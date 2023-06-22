@@ -2,7 +2,7 @@ function initializeBox(N::Int)
     B = Box(Atom[], Molecule[]);
 
     for i=1:N
-        push!(B.atoms, Atom(i,1,true));
+        push!(B.atoms, Atom(i,rand([-1,1]),true));
     end
     return B;
 end
@@ -47,21 +47,33 @@ end
 
 function montecarlo(B::Box)
     Elist = Real[];
+    Avrg  = Real[];
     Atoms = B.atoms;
 
-    for _ in 1:10000
+    en = energy(B);
+    sumEnergy = en;
+
+    for i in 1:Steps
         a = rand(Atoms);
         ΔE = spinFlipDeltaEnergy(B,a);
         if ΔE < 0
             a.σ = -a.σ;
+            en += ΔE;
         else
             p = rand();
             if p<exp(-ΔE/T)
                 a.σ = -a.σ;
+                en += ΔE;
             end
         end
-        push!(Elist, energy(B));
+        sumEnergy += en; 
+        # push!(Elist, en);
+        if i%avrgStep == 0
+            avrg = sumEnergy/i;
+            # avrg = sum(Elist[end-avrgStep+1:end])/avrgStep;
+            push!(Avrg, avrg);
+        end
     end
-    return Elist;
+    return Avrg;
 end
 
