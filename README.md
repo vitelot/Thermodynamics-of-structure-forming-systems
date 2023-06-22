@@ -9,4 +9,4 @@ to self-assembly of colloidal amphibolic particles.
 Here, we work out the scripts used in calculating the properties of SFS presented in the article [Thermodynamics of structure-forming systems][article] by J. Korbel et al.
 
 We describe our method in the [supplementary information][supplementary] of the aforementioned article in the following figure:
-[figure]
+![figure]
