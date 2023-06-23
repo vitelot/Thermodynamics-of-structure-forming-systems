@@ -7,7 +7,7 @@ function initializeBox(N::Int)
     nup = count(x->x.σ>0, Atoms);
     ndn = count(x->x.σ<0, Atoms);
 
-    B = Box(nup,ndn,Set(Atoms), Molecule[]);
+    B = Box(Dict(-1=>ndn, 1=>nup),Set(Atoms), Molecule[]);
     
     return B;
 end
@@ -78,12 +78,16 @@ function spinFlipMove(B::Box)
     a = rand(B.atoms);
     ΔE = spinFlipDeltaEnergy(B,a);
     if ΔE < 0
+        B.M[a.σ] -= 1; # decrease number of old spins
         a.σ = -a.σ;
+        B.M[a.σ] += 1; # and increase the new one
         return ΔE; # spin flip accepted
     else
         p = rand();
         if p<exp(-ΔE/T)
+            B.M[a.σ] -= 1;
             a.σ = -a.σ;
+            B.M[a.σ] += 1;
             return ΔE; # spin flip accepted
         end
     end

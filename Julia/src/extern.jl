@@ -23,8 +23,7 @@ mutable struct Molecule
 end
 
 mutable struct Box # the simulation box
-    nup::Int; # number of upper spin
-    ndn::Int; # number of down spin
+    M::Dict{Int,Int}; # magnetisation: number of up and down spin
     atoms::Set{Atom};
     molecules::Vector{Molecule};
 end
