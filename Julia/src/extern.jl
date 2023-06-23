@@ -14,7 +14,7 @@ avrgStep = 1000; # used to estimate the average energy
 mutable struct Atom
     id::Int; # identification number
     σ::Int;  # spin (±1, for the moment)
-    isfree::Bool; # true if this atom is not combined
+    # isfree::Bool; # true if this atom is not combined
 end
 
 mutable struct Molecule
@@ -23,7 +23,9 @@ mutable struct Molecule
 end
 
 mutable struct Box # the simulation box
-    atoms::Vector{Atom};
+    nup::Int; # number of upper spin
+    ndn::Int; # number of down spin
+    atoms::Set{Atom};
     molecules::Vector{Molecule};
 end
 

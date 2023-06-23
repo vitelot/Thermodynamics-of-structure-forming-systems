@@ -1,15 +1,20 @@
 function initializeBox(N::Int)
-    B = Box(Atom[], Molecule[]);
-
+    Atoms = Atom[];
     for i=1:N
-        push!(B.atoms, Atom(i,rand([-1,1]),true));
+        push!(Atoms, Atom(i,rand([-1,1])));
     end
+    allspins = [x.σ for x in Atoms];
+    nup = count(x->x.σ>0, Atoms);
+    ndn = count(x->x.σ<0, Atoms);
+
+    B = Box(nup,ndn,Set(Atoms), Molecule[]);
+    
     return B;
 end
 
 function energy(B::Box)
     Es = Eh = 0.0;
-    Atoms = B.atoms;
+    Atoms = collect(B.atoms);
     n = length(Atoms);
 
     if H > 0.0 # well, it doesn't really matter ... it's so fast anyway
@@ -66,6 +71,9 @@ function montecarlo(B::Box)
     return Avrg;
 end
 
+"""
+    checks whether a spin flip occurs; does it and returns the ΔE 
+"""
 function spinFlipMove(B::Box)
     a = rand(B.atoms);
     ΔE = spinFlipDeltaEnergy(B,a);
@@ -80,4 +88,61 @@ function spinFlipMove(B::Box)
         end
     end
     return 0.0; # flipping discarded
+end
+
+function moleculeMove(B::Box)
+    if rand() < 0.5
+        moleculeSplit(B);
+    else
+        moleculeJoin(B);
+    end
+end
+
+function moleculeJoin(B::Box)
+    Atoms = B.atoms;
+    if length(Atoms) < 2
+        @info "No atoms available to join";
+        return 0.0;
+    end
+
+    # select two random different atoms
+    a1 = rand(Atoms);
+    while true
+        a2 = rand(Atoms);
+        a2.id == a1.id || break;
+    end
+    # removing an atom corresponds to half a spin flip
+    ΔE = 0.5*(spinFlipDeltaEnergy(B,a1)+spinFlipDeltaEnergy(B,a2));
+
+    pop!(Atoms, a1);
+    a2 = rand(Atoms);
+    pop!(Atoms, a2);
+        
+
+
+end
+
+"""
+calculates the ratio n!/m!
+"""
+function factorialRatio(n::Int, m::Int)::Real
+    n==m && return 1.0;
+    if n==0 || n==1 
+        return 1.0/factorial(m);
+    end
+    if m==0 || m==1 
+        return factorial(n);
+    end
+    f=1.0;
+    if n>m
+        for i=m+1:n
+            f *= i;
+        end
+        return f;
+    else
+        for i = n+1:m
+            f /= i
+        end
+        return f;
+    end
 end
