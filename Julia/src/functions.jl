@@ -3,7 +3,6 @@ function initializeBox(N::Int)
     for i=1:N
         push!(Atoms, Atom(i,rand([-1,1])));
     end
-    allspins = [x.σ for x in Atoms];
     nup = count(x->x.σ>0, Atoms);
     ndn = count(x->x.σ<0, Atoms);
 
@@ -70,9 +69,9 @@ function spinFlipDeltaEnergy(B::Box, atom::Atom)
     return energy(nup_tilde,ndn_tilde, J,H) - energy(nup,ndn, J,H); 
 end
 
-function montecarlo(B::Box)
-    Elist = Real[];
-    Avrg  = Real[];
+function montecarlo(B::Box)::Vector{Double}
+    # Elist = Double[];
+    Avrg  = Double[];
 
     en = energy(B);
     sumEnergy = en;
