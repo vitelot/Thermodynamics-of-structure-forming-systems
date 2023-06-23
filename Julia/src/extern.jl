@@ -1,14 +1,18 @@
 using Plots;
 
-Real = Float64;
+Double = Float64;
+
+DEBUG = 3;
 
 # parameters
 N::Int = 200; # total number of atoms
-T::Real = 1.0;  # temperature
-H::Real = 0.0; # external magnetic field
-J::Real = 1.0; # spin-spin coupling
+T::Double = 1.0;  # temperature
+H::Double = 0.0; # external magnetic field
+J::Double = 1.0; # spin-spin coupling
 Steps::Int = 2_000_000;
 avrgStep = 1000; # used to estimate the average energy
+splitProbability = 0.5; # decides if to split molecules or join atoms
+spinFlipProbability = 0.5; # decides if to flip atoms or make a molecule move
 
 # structures
 mutable struct Atom

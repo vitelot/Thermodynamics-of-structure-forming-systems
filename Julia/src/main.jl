@@ -7,7 +7,9 @@ include("functions.jl");
 
 function main()
     B = initializeBox(N);
-    montecarlo(B);
+    Elist = montecarlo(B);
+    println("Atoms:$(B.M[1]+B.M[-1]) Magnetization:$(B.M[1]-B.M[-1]) Molecules:$(length(B.molecules))");
+    Elist
 end
 
 Elist = main();

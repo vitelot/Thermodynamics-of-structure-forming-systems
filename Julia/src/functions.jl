@@ -15,7 +15,7 @@ end
 """
     Energy of the system given spin population and parameters
 """
-function energy(nup::Int,ndn::Int,J_coupling::Real,H_field::Real)::Real
+function energy(nup::Int,ndn::Int,J_coupling::Double,H_field::Double)::Double
     n = nup+ndn;
     m = nup-ndn;
     return (n-m*m)*J_coupling/(n-1) - H_field * m;
@@ -24,7 +24,7 @@ end
 """
     Energy of the system given the system box
 """
-function energy(B::Box)::Real
+function energy(B::Box)::Double
 
     return energy(B.M[1], B.M[-1], J, H); 
 
@@ -64,10 +64,10 @@ function spinFlipDeltaEnergy(B::Box, atom::Atom)
     # the following is way faster
     nup = B.M[1];
     ndn = B.M[-1];
-    E = nup - ndn - atom.σ;
+    nup_tilde = nup - (atom.σ + 1)÷2 + (1 - atom.σ)÷2;
+    ndn_tilde = ndn - (1 - atom.σ)÷2 + (atom.σ + 1)÷2;
     
-    E = 2.0 * (2.0 * J * E/(nup+ndn-1) + H) * atom.σ;
-    return E;
+    return energy(nup_tilde,ndn_tilde, J,H) - energy(nup,ndn, J,H); 
 end
 
 function montecarlo(B::Box)
@@ -79,7 +79,15 @@ function montecarlo(B::Box)
 
     for i in 1:Steps # do at max Step steps
         
-        en += spinFlipMove(B);
+        if rand() < spinFlipProbability
+            en += spinFlipMove(B);
+        else
+            en += moleculeMove(B);
+        end
+        
+        # energy_check = energy(B);
+        # energy_check ≈ en || @info("Energy does not match");
+
         sumEnergy += en; 
         # push!(Elist, en);
         if i%avrgStep == 0
@@ -114,18 +122,18 @@ function spinFlipMove(B::Box)
     return 0.0; # flipping discarded
 end
 
-function moleculeMove(B::Box)
-    if rand() < 0.5
-        moleculeSplit(B);
-    else
-        moleculeJoin(B);
+function moleculeMove(B::Box)::Double
+    if rand() < splitProbability
+        return moleculeSplit(B);
     end
+    
+    return moleculeJoin(B);
 end
 
 """
     checks whether two atoms join; does it and returns the ΔE 
 """
-function moleculeJoin(B::Box)
+function moleculeJoin(B::Box)::Double
     Atoms = B.atoms;
     if length(Atoms) < 2
         # @info "No atoms available to join";
@@ -179,7 +187,7 @@ end
     if yes, does it, returns the ΔE 
     and assign atoms' spin proportional to spin population 
 """
-function moleculeSplit(B)
+function moleculeSplit(B)::Double
     nmol = length(B.molecules);
     nmol < 1 && return 0.0;
     # current magnetisation in box1
@@ -230,7 +238,7 @@ end
 """
 calculates the ratio n!/m!
 """
-function factorialRatio(n::Int, m::Int)::Real
+function factorialRatio(n::Int, m::Int)::Double
     n==m && return 1.0;
     if n==0 || n==1 
         return 1.0/factorial(m);
