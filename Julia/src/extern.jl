@@ -18,13 +18,13 @@ mutable struct Atom
 end
 
 mutable struct Molecule
-    natoms::Int; # number of atoms composing the molecule
-    atomlist::Vector{Int}; # id of the atoms composing it
+    # natoms::Int; # number of atoms composing the molecule
+    atoms::Vector{Atom}; # the atoms composing the molecule
 end
 
 mutable struct Box # the simulation box
     M::Dict{Int,Int}; # magnetisation: number of up and down spin
     atoms::Set{Atom};
-    molecules::Vector{Molecule};
+    molecules::Set{Molecule};
 end
 

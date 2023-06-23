@@ -7,7 +7,7 @@ function initializeBox(N::Int)
     nup = count(x->x.σ>0, Atoms);
     ndn = count(x->x.σ<0, Atoms);
 
-    B = Box(Dict(-1=>ndn, 1=>nup),Set(Atoms), Molecule[]);
+    B = Box(Dict(-1=>ndn, 1=>nup),Set(Atoms), Set{Molecule}());
     
     return B;
 end
@@ -102,6 +102,9 @@ function moleculeMove(B::Box)
     end
 end
 
+"""
+    checks whether two atoms join; does it and returns the ΔE 
+"""
 function moleculeJoin(B::Box)
     Atoms = B.atoms;
     if length(Atoms) < 2
@@ -111,19 +114,43 @@ function moleculeJoin(B::Box)
 
     # select two random different atoms
     a1 = rand(Atoms);
+    a2 = rand(Atoms);
     while true
-        a2 = rand(Atoms);
         a2.id == a1.id || break;
+        a2 = rand(Atoms);
     end
     # removing an atom corresponds to half a spin flip
     ΔE = 0.5*(spinFlipDeltaEnergy(B,a1)+spinFlipDeltaEnergy(B,a2));
+    
+    # current spin population
+    nup = B.M[1];
+    ndn = B.M[-1];
+    # spin population after removal
+    nup_tilde = nup - (a1.σ + 1)÷2 - (a2.σ + 1)÷2;
+    ndn_tilde = ndn - (1 - a1.σ)÷2 - (1 - a2.σ)÷2;
+    # current nr of molecules
+    nmol = length(B.molecules);
 
-    pop!(Atoms, a1);
-    a2 = rand(Atoms);
-    pop!(Atoms, a2);
-        
+    prob = factorialRatio(nup,nup_tilde)*
+           factorialRatio(ndn,ndn_tilde)/
+           (2*nmol+2)*
+           exp(-ΔE/T);
 
-
+    if rand() < prob
+        # accept the joining
+        # remove the two atoms from box1
+        pop!(Atoms, a1);
+        pop!(Atoms, a2);
+        mol = Molecule([a1,a2]);
+        # add the new molecule into box2
+        push!(B.molecules, mol);
+        B.M[1] = nup_tilde;
+        B.M[-1]= ndn_tilde;
+        return ΔE;
+    else
+        # do not join and do nothing
+        return 0.0;
+    end
 end
 
 """
