@@ -12,41 +12,61 @@ function initializeBox(N::Int)
     return B;
 end
 
-function energy(B::Box)
-    Es = Eh = 0.0;
-    Atoms = collect(B.atoms);
-    n = length(Atoms);
+"""
+    Energy of the system given spin population and parameters
+"""
+function energy(nup::Int,ndn::Int,J_coupling::Real,H_field::Real)::Real
+    n = nup+ndn;
+    m = nup-ndn;
+    return (n-m*m)*J_coupling/(n-1) - H_field * m;
+end
 
-    if H > 0.0 # well, it doesn't really matter ... it's so fast anyway
-        for i in eachindex(Atoms)
-            si = Atoms[i].σ;
-            # Eh += si;
-            for j in 1:i-1
-                Es += si * Atoms[j].σ;
-            end
-        end
-    else
-        for i in eachindex(Atoms)
-            si = Atoms[i].σ;
-            Eh += si;
-            for j in 1:i-1
-                Es += si * Atoms[j].σ;
-            end
-        end
-    end
+"""
+    Energy of the system given the system box
+"""
+function energy(B::Box)::Real
 
-    return -Eh * H - Es * 2.0 * J /(n-1);
+    return energy(B.M[1], B.M[-1], J, H); 
+
+    # Es = Eh = 0.0;
+    # Atoms = collect(B.atoms);
+    # n = length(Atoms);
+
+    # if H > 0.0 # well, it doesn't really matter ... it's so fast anyway
+    #     for i in eachindex(Atoms)
+    #         si = Atoms[i].σ;
+    #         # Eh += si;
+    #         for j in 1:i-1
+    #             Es += si * Atoms[j].σ;
+    #         end
+    #     end
+    # else
+    #     for i in eachindex(Atoms)
+    #         si = Atoms[i].σ;
+    #         Eh += si;
+    #         for j in 1:i-1
+    #             Es += si * Atoms[j].σ;
+    #         end
+    #     end
+    # end
+
+    # return -Eh * H - Es * 2.0 * J /(n-1);
 end
 
 function spinFlipDeltaEnergy(B::Box, atom::Atom)
-    E = 0.0;
-    n = length(B.atoms);
-    for a in B.atoms
-        E += a.σ;
-    end 
-    E -= atom.σ;
+    # E = 0.0;
+    # n = length(B.atoms);
+    # for a in B.atoms
+    #     E += a.σ;
+    # end 
+    # E -= atom.σ;
 
-    E = (4.0 * J * E/(n-1) + 2.0 * H) * atom.σ;
+    # the following is way faster
+    nup = B.M[1];
+    ndn = B.M[-1];
+    E = nup - ndn - atom.σ;
+    
+    E = 2.0 * (2.0 * J * E/(nup+ndn-1) + H) * atom.σ;
     return E;
 end
 
@@ -108,7 +128,7 @@ end
 function moleculeJoin(B::Box)
     Atoms = B.atoms;
     if length(Atoms) < 2
-        @info "No atoms available to join";
+        # @info "No atoms available to join";
         return 0.0;
     end
 
@@ -119,8 +139,6 @@ function moleculeJoin(B::Box)
         a2.id == a1.id || break;
         a2 = rand(Atoms);
     end
-    # removing an atom corresponds to half a spin flip
-    ΔE = 0.5*(spinFlipDeltaEnergy(B,a1)+spinFlipDeltaEnergy(B,a2));
     
     # current spin population
     nup = B.M[1];
@@ -130,6 +148,9 @@ function moleculeJoin(B::Box)
     ndn_tilde = ndn - (1 - a1.σ)÷2 - (1 - a2.σ)÷2;
     # current nr of molecules
     nmol = length(B.molecules);
+
+    # energy is now fast to calculate
+    ΔE = energy(nup_tilde,ndn_tilde, J,H) - energy(nup,ndn, J,H);
 
     prob = factorialRatio(nup,nup_tilde)*
            factorialRatio(ndn,ndn_tilde)/
@@ -151,6 +172,59 @@ function moleculeJoin(B::Box)
         # do not join and do nothing
         return 0.0;
     end
+end
+
+"""
+    checks whether to split a molecule; 
+    if yes, does it, returns the ΔE 
+    and assign atoms' spin proportional to spin population 
+"""
+function moleculeSplit(B)
+    nmol = length(B.molecules);
+    nmol < 1 && return 0.0;
+    # current magnetisation in box1
+    nup = B.M[1];
+    ndn = B.M[-1];
+
+    ntot = nup+ndn;
+    pup = ifelse(ntot>0, nup/ntot, 0.5);
+    
+    newspin1 = ifelse(rand()<pup, 1, -1);
+    newspin2 = ifelse(rand()<pup, 1, -1);
+    # vito: actually we know the spin of composing atoms and could use it
+
+    # spin population after addition
+    nup_tilde = nup + (newspin1 + 1)÷2 + (newspin2 + 1)÷2;
+    ndn_tilde = ndn + (1 - newspin1)÷2 + (1 - newspin2)÷2;
+
+    # energy is now fast to calculate
+    ΔE = energy(nup_tilde,ndn_tilde, J,H) - energy(nup,ndn, J,H);
+    println("Delta: ",ΔE)
+
+    prob = factorialRatio(nup,nup_tilde)*
+           factorialRatio(ndn,ndn_tilde)*
+           2*nmol*
+           exp(-ΔE/T);
+    println("Prob: $prob")
+
+    if rand()<prob
+        # accepted
+        println("accepted")
+        # select a random molecule and remove it from box2 
+        mol = pop!(B.molecules);
+
+        # vito: we stick to the idea of having two atoms only for the moment
+        (a1,a2) = mol.atoms;
+        a1.σ = newspin1;
+        a2.σ = newspin2;
+        push!(B.atoms, a1, a2);
+        B.M[1] = nup_tilde;
+        B.M[-1]= ndn_tilde;
+        return ΔE;
+    end
+
+    # not accepted
+    return 0.0;
 end
 
 """
