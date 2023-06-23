@@ -199,17 +199,17 @@ function moleculeSplit(B)
 
     # energy is now fast to calculate
     ΔE = energy(nup_tilde,ndn_tilde, J,H) - energy(nup,ndn, J,H);
-    println("Delta: ",ΔE)
+    # println("Delta: ",ΔE)
 
     prob = factorialRatio(nup,nup_tilde)*
            factorialRatio(ndn,ndn_tilde)*
            2*nmol*
            exp(-ΔE/T);
-    println("Prob: $prob")
+    # println("Prob: $prob")
 
     if rand()<prob
         # accepted
-        println("accepted")
+        # println("accepted")
         # select a random molecule and remove it from box2 
         mol = pop!(B.molecules);
 
