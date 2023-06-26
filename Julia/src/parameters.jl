@@ -2,7 +2,7 @@ DEBUG = 3;
 
 # parameters
 Ntot::Int =         200; # total number of atoms
-Temp::Double =      1.0;  # temperature
+# Temp::Double =      1.0;  # temperature
 Hfield::Double =    0.0; # external magnetic field
 Jcoupling::Double = 1.0; # spin-spin coupling
 
@@ -18,3 +18,4 @@ moleculeSplitProbability::Double = 0.5; # decides if to split molecules or join 
 spinFlipProbability::Double =      0.5; # decides if to flip atoms or make a molecule move
 
 saveResults::Bool = true; # saves results into file results.CSV
+doPlot::Bool =      true; # plot and save it on pdf

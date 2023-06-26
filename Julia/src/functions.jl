@@ -9,7 +9,7 @@ function initializeBox()::Box
 
     B = Box(
             Ntot,
-            Temp,
+            Tmin,
             Jcoupling,
             Hfield,
             Dict(-1=>ndn, 1=>nup),
