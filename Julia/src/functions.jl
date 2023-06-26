@@ -122,7 +122,7 @@ function spinFlipMove(B::Box)
 end
 
 function moleculeMove(B::Box)::Double
-    if rand() < splitProbability
+    if rand() < moleculeSplitProbability
         return moleculeSplit(B);
     end
     

@@ -4,6 +4,7 @@ Montecarlo simulation of structure-forming systems
 
 include("extern.jl");
 include("functions.jl");
+include("parameters.jl");
 
 function main()
     B = initializeBox(N);
