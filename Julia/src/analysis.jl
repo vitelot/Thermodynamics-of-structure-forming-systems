@@ -6,7 +6,7 @@ function analyze(Results::DataFrame)
         :molecules      => mean, :molecules      => std
         );
     
-    return mean_and_std;
+    return sort(mean_and_std, :temperature);
 end
 
 function plotall(data::DataFrame)
