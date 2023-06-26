@@ -2,7 +2,7 @@
  Structures are defined
 """
 
-using CSV, DataFrames, Plots;
+using CSV, DataFrames, Plots, Statistics;
 
 Double = Float64;
 
@@ -19,6 +19,10 @@ mutable struct Molecule
 end
 
 mutable struct Box # the simulation box
+    N::Int; # total nr of atoms
+    T::Double; # temperature
+    J::Double; # spin-spin coupling
+    H::Double; # external magnetic field
     M::Dict{Int,Int}; # magnetisation: number of up and down spin
     atoms::Set{Atom};
     molecules::Set{Molecule};

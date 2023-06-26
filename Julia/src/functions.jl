@@ -1,4 +1,5 @@
-function initializeBox(N::Int)
+function initializeBox()::Box
+    N = Ntot;
     Atoms = Atom[];
     for i=1:N
         push!(Atoms, Atom(i,rand([-1,1])));
@@ -6,8 +7,16 @@ function initializeBox(N::Int)
     nup = count(x->x.σ>0, Atoms);
     ndn = count(x->x.σ<0, Atoms);
 
-    B = Box(Dict(-1=>ndn, 1=>nup),Set(Atoms), Set{Molecule}());
-    
+    B = Box(
+            Ntot,
+            Temp,
+            Jcoupling,
+            Hfield,
+            Dict(-1=>ndn, 1=>nup),
+            Set(Atoms), 
+            Set{Molecule}()
+        );
+
     return B;
 end
 
@@ -25,7 +34,7 @@ end
 """
 function energy(B::Box)::Double
 
-    return energy(B.M[1], B.M[-1], J, H); 
+    return energy(B.M[1], B.M[-1], B.J, B.H); 
 
     # Es = Eh = 0.0;
     # Atoms = collect(B.atoms);
@@ -66,7 +75,7 @@ function spinFlipDeltaEnergy(B::Box, atom::Atom)
     nup_tilde = nup - (atom.σ + 1)÷2 + (1 - atom.σ)÷2;
     ndn_tilde = ndn - (1 - atom.σ)÷2 + (atom.σ + 1)÷2;
     
-    return energy(nup_tilde,ndn_tilde, J,H) - energy(nup,ndn, J,H); 
+    return energy(nup_tilde,ndn_tilde, B.J,B.H) - energy(nup,ndn, B.J,B.H); 
 end
 
 """
@@ -101,10 +110,11 @@ function montecarlo(B::Box)::DataFrame
                 temperature=Double[],
                 step=Int[],
                 average_energy=Double[],
-                mgnetisation=Double[],
+                magnetisation=Double[],
                 molecules=Int[]
                 );
 
+    
     en = energy(B);
     
     for _ in 1:termalisationSteps
@@ -121,7 +131,7 @@ function montecarlo(B::Box)::DataFrame
         if i%avrgStep == 0
             avrg = sumEnergy/i;
             push!(Results, 
-                (T, i, avrg, magnetisation(B), moleculeNumber(B))
+                (B.T, i, avrg, magnetisation(B), moleculeNumber(B))
             );
         end
     end
@@ -141,7 +151,7 @@ function spinFlipMove(B::Box)
         return ΔE; # spin flip accepted
     else
         p = rand();
-        if p<exp(-ΔE/T)
+        if p<exp(-ΔE/B.T)
             B.M[a.σ] -= 1;
             a.σ = -a.σ;
             B.M[a.σ] += 1;
@@ -187,12 +197,12 @@ function moleculeJoin(B::Box)::Double
     nmol = length(B.molecules);
 
     # energy is now fast to calculate
-    ΔE = energy(nup_tilde,ndn_tilde, J,H) - energy(nup,ndn, J,H);
+    ΔE = energy(nup_tilde,ndn_tilde, B.J,B.H) - energy(nup,ndn, B.J,B.H);
 
     prob = factorialRatio(nup,nup_tilde)*
            factorialRatio(ndn,ndn_tilde)/
            (2*nmol+2)*
-           exp(-ΔE/T);
+           exp(-ΔE/B.T);
 
     if rand() < prob
         # accept the joining
@@ -235,13 +245,13 @@ function moleculeSplit(B)::Double
     ndn_tilde = ndn + (1 - newspin1)÷2 + (1 - newspin2)÷2;
 
     # energy is now fast to calculate
-    ΔE = energy(nup_tilde,ndn_tilde, J,H) - energy(nup,ndn, J,H);
+    ΔE = energy(nup_tilde,ndn_tilde, B.J,B.H) - energy(nup,ndn, B.J,B.H);
     # println("Delta: ",ΔE)
 
     prob = factorialRatio(nup,nup_tilde)*
            factorialRatio(ndn,ndn_tilde)*
            2*nmol*
-           exp(-ΔE/T);
+           exp(-ΔE/B.T);
     # println("Prob: $prob")
 
     if rand()<prob
