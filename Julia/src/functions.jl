@@ -81,9 +81,29 @@ function oneMove(B::Box)::Double
     return moleculeMove(B);
 end
 
-function montecarlo(B::Box)::Vector{Double}
+"""
+return the magnetisation in the box
+"""
+function magnetisation(B::Box)::Int
+    return B.M[1] - B.M[-1];
+end
+
+"""
+return the number of molecules in the box
+"""
+function moleculeNumber(B::Box)::Int
+    return length(B.molecules);
+end
+
+function montecarlo(B::Box)::DataFrame
     # Elist = Double[];
-    Avrg  = Double[];
+    Results  = DataFrame(
+                temperature=Double[],
+                step=Int[],
+                average_energy=Double[],
+                mgnetisation=Double[],
+                molecules=Int[]
+                );
 
     en = energy(B);
     
@@ -95,19 +115,17 @@ function montecarlo(B::Box)::Vector{Double}
     for i in 1:Steps # do at max Step steps
         
         en += oneMove(B);
-        
-        # energy_check = energy(B);
-        # energy_check ≈ en || @info("Energy does not match");
 
         sumEnergy += en; 
         # push!(Elist, en);
         if i%avrgStep == 0
             avrg = sumEnergy/i;
-            # avrg = sum(Elist[end-avrgStep+1:end])/avrgStep;
-            push!(Avrg, avrg);
+            push!(Results, 
+                (T, i, avrg, magnetisation(B), moleculeNumber(B))
+            );
         end
     end
-    return Avrg;
+    return Results;
 end
 
 """

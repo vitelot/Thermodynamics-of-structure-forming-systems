@@ -8,10 +8,11 @@ include("functions.jl");
 
 function main()
     B = initializeBox(N);
-    Elist = montecarlo(B);
+    Results = montecarlo(B);
     println("Atoms:$(B.M[1]+B.M[-1]) Magnetization:$(B.M[1]-B.M[-1]) Molecules:$(length(B.molecules))");
-    Elist
+    Results
 end
 
-Elist = main();
-plot(Elist)
+Results = main();
+plot(Results.average_energy)
+Results

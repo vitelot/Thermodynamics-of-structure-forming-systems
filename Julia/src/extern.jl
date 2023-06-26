@@ -2,7 +2,7 @@
  Structures are defined
 """
 
-using Plots;
+using CSV, DataFrames, Plots;
 
 Double = Float64;
 
