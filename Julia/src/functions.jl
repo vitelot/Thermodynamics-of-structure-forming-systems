@@ -104,16 +104,27 @@ function moleculeNumber(B::Box)::Int
     return length(B.molecules);
 end
 
-function montecarlo(B::Box)::DataFrame
-    # Elist = Double[];
+function multiTemperature(B::Box)::DataFrame
     Results  = DataFrame(
                 temperature=Double[],
+                j_coupling=Double[],
+                h_field=Double[],
                 step=Int[],
                 average_energy=Double[],
                 magnetisation=Double[],
                 molecules=Int[]
                 );
+    for temperature = Tmin:Tstep:Tmax
+        B.T = temperature;
+        @info "Simulating T=$temperature";
 
+        montecarlo(B, Results);
+    end
+
+    return Results;
+end
+
+function montecarlo(B::Box, Results::DataFrame)::Nothing
     
     en = energy(B);
     
@@ -131,11 +142,11 @@ function montecarlo(B::Box)::DataFrame
         if i%avrgStep == 0
             avrg = sumEnergy/i;
             push!(Results, 
-                (B.T, i, avrg, magnetisation(B), moleculeNumber(B))
+                (B.T, B.J, B.H, i, avrg, magnetisation(B), moleculeNumber(B))
             );
         end
     end
-    return Results;
+    return;
 end
 
 """
