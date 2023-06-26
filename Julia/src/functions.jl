@@ -86,12 +86,12 @@ function montecarlo(B::Box)::Vector{Double}
     Avrg  = Double[];
 
     en = energy(B);
-    sumEnergy = en;
-
+    
     for _ in 1:termalisationSteps
         en += oneMove(B);
     end
-
+    
+    sumEnergy = en;
     for i in 1:Steps # do at max Step steps
         
         en += oneMove(B);

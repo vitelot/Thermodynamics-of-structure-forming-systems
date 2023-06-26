@@ -3,8 +3,8 @@ Montecarlo simulation of structure-forming systems
 """
 
 include("extern.jl");
-include("functions.jl");
 include("parameters.jl");
+include("functions.jl");
 
 function main()
     B = initializeBox(N);
