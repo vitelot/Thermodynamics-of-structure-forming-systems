@@ -69,6 +69,18 @@ function spinFlipDeltaEnergy(B::Box, atom::Atom)
     return energy(nup_tilde,ndn_tilde, J,H) - energy(nup,ndn, J,H); 
 end
 
+"""
+Do one montecarlo move and return the delta energy
+"""
+function oneMove(B::Box)::Double
+
+    if rand() < spinFlipProbability
+        return spinFlipMove(B);
+    end
+
+    return moleculeMove(B);
+end
+
 function montecarlo(B::Box)::Vector{Double}
     # Elist = Double[];
     Avrg  = Double[];
@@ -76,13 +88,13 @@ function montecarlo(B::Box)::Vector{Double}
     en = energy(B);
     sumEnergy = en;
 
+    for _ in 1:termalisationSteps
+        en += oneMove(B);
+    end
+
     for i in 1:Steps # do at max Step steps
         
-        if rand() < spinFlipProbability
-            en += spinFlipMove(B);
-        else
-            en += moleculeMove(B);
-        end
+        en += oneMove(B);
         
         # energy_check = energy(B);
         # energy_check ≈ en || @info("Energy does not match");
