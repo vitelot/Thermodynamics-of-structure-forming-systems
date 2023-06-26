@@ -35,41 +35,10 @@ end
 function energy(B::Box)::Double
 
     return energy(B.M[1], B.M[-1], B.J, B.H); 
-
-    # Es = Eh = 0.0;
-    # Atoms = collect(B.atoms);
-    # n = length(Atoms);
-
-    # if H > 0.0 # well, it doesn't really matter ... it's so fast anyway
-    #     for i in eachindex(Atoms)
-    #         si = Atoms[i].σ;
-    #         # Eh += si;
-    #         for j in 1:i-1
-    #             Es += si * Atoms[j].σ;
-    #         end
-    #     end
-    # else
-    #     for i in eachindex(Atoms)
-    #         si = Atoms[i].σ;
-    #         Eh += si;
-    #         for j in 1:i-1
-    #             Es += si * Atoms[j].σ;
-    #         end
-    #     end
-    # end
-
-    # return -Eh * H - Es * 2.0 * J /(n-1);
 end
 
 function spinFlipDeltaEnergy(B::Box, atom::Atom)
-    # E = 0.0;
-    # n = length(B.atoms);
-    # for a in B.atoms
-    #     E += a.σ;
-    # end 
-    # E -= atom.σ;
 
-    # the following is way faster
     nup = B.M[1];
     ndn = B.M[-1];
     nup_tilde = nup - (atom.σ + 1)÷2 + (1 - atom.σ)÷2;
@@ -118,13 +87,58 @@ function multiTemperature(B::Box)::DataFrame
         B.T = temperature;
         @info "Simulating T=$temperature";
 
-        montecarlo(B, Results);
+        # println(B);
+        montecarlo!(B, Results);
+        # println(B);
     end
 
     return Results;
 end
 
-function montecarlo(B::Box, Results::DataFrame)::Nothing
+# function copy(B::Box)::Box
+#     return Box(B.N, B.T, B.J, B.H, copy(B.M), copy(B.atoms), copy(B.molecules));
+# end
+
+function multiTemperature_parallel(B::Box)::DataFrame
+    Results  = DataFrame(
+                temperature=Double[],
+                j_coupling=Double[],
+                h_field=Double[],
+                step=Int[],
+                average_energy=Double[],
+                magnetisation=Double[],
+                molecules=Int[]
+                );
+    nthreads = Threads.nthreads();
+    if nthreads == 1
+        println("You have only one thread selected. If you have more, pls run julia with --threads n");
+        println("Going on sequentially: no parallelization\n");
+        return multiTemperature(B);
+    end
+
+    # VB = Vector{Box}(undef, nthreads);
+    VR = Vector{DataFrame}(undef, nthreads);
+    for i = 1:nthreads
+        # VB[i] = copy(B);
+        VR[i] = copy(Results);
+    end
+
+    Threads.@threads for temperature = Tmin:Tstep:Tmax
+        tid = Threads.threadid();
+        Bc = initializeBox();
+        Bc.T = temperature;
+        @info "Simulating T=$temperature on thread $tid";
+        
+        # println(Bc);
+        montecarlo!(Bc, VR[tid]);
+        # println(Bc);
+        # Bc = nothing;
+    end
+
+    return vcat(VR...);
+end
+
+function montecarlo!(B::Box, Results::DataFrame)::Nothing
     
     en = energy(B);
     
@@ -142,7 +156,7 @@ function montecarlo(B::Box, Results::DataFrame)::Nothing
         if i%avrgStep == 0
             avrg = sumEnergy/i;
             push!(Results, 
-                (B.T, B.J, B.H, i, avrg, magnetisation(B), moleculeNumber(B))
+                (B.T, B.J, B.H, i, avrg, abs(magnetisation(B)), moleculeNumber(B))
             );
         end
     end

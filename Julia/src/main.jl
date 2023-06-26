@@ -9,7 +9,11 @@ include("analysis.jl");
 
 function main()
     B = initializeBox();
-    Results = multiTemperature(B);
+    if goParallel
+        Results = multiTemperature_parallel(B);
+    else
+        Results = multiTemperature(B);
+    end
     # println("Atoms:$(B.M[1]+B.M[-1]) Magnetization:$(B.M[1]-B.M[-1]) Molecules:$(length(B.molecules))");
     
     saveResults && CSV.write("results.csv", Results);

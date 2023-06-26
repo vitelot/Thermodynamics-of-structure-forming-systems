@@ -3,6 +3,7 @@
 """
 
 using CSV, DataFrames, Plots, Statistics;
+import Base.copy;
 
 Double = Float64;
 

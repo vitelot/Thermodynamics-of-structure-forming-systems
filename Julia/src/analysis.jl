@@ -13,7 +13,7 @@ function plotall(data::DataFrame)
 
     p1 = plot(data.temperature, data.average_energy_mean, yerr=data.average_energy_std,
               ylabel="energy");
-    p2 = plot(data.temperature, abs.(data.magnetisation_mean), yerr=data.magnetisation_std,
+    p2 = plot(data.temperature, data.magnetisation_mean, yerr=data.magnetisation_std,
               ylabel = "magnetisation");
     p3 = plot(data.temperature, data.molecules_mean, yerr=data.molecules_std,
               ylabel = "molecules");
