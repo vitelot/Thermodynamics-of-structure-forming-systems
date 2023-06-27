@@ -3,11 +3,11 @@ DEBUG = 3;
 # parameters
 Ntot::Int         = 200; # total number of atoms
 Hfield::Double    = 0.0; # external magnetic field
-Jcoupling::Double = 1.0; # spin-spin coupling
+Jcoupling::Double = 0.5; # spin-spin coupling
 
-Tmin::Double  = 0.5;
-Tstep::Double = 0.02;
-Tmax::Double  = 2.5;
+Tmin::Double  = 0.75;
+Tstep::Double = 0.01;
+Tmax::Double  = 1.25;
 
 termalisationSteps::Int = Ntot*Ntot÷2; # run these nr of steps at the beginning discarding the energy
 Steps::Int              = 100*termalisationSteps; # total nr of steps

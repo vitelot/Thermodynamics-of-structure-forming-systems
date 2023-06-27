@@ -15,11 +15,11 @@ function main()
         Results = multiTemperature(B);
     end
     # println("Atoms:$(B.M[1]+B.M[-1]) Magnetization:$(B.M[1]-B.M[-1]) Molecules:$(length(B.molecules))");
-    
-    saveResults && CSV.write("results.csv", Results);
+    filetext = "_N=$(B.N)_Tmin=$(Tmin)_Tstep=$(Tstep)_Tmax=$(Tmax)_sFP=$(spinFlipProbability)";
+    saveResults && CSV.write("results$filetext.csv", Results);
     
     final_results = analyze(Results);
-    saveResults && CSV.write("final_results.csv", final_results);
+    saveResults && CSV.write("final_results$filetext.csv", final_results);
     
     if doPlot
         if length(unique(final_results.temperature))<2
@@ -27,7 +27,7 @@ function main()
             println("$final_results");
         else
             p=plotall(final_results)
-            savefig(p,"results.pdf");
+            savefig(p,"results$filetext.pdf");
         end    
     end
 
