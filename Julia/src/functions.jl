@@ -167,6 +167,9 @@ end
     checks whether a spin flip occurs; does it and returns the ΔE 
 """
 function spinFlipMove(B::Box)
+    
+    length(B.atoms)<2 && return 0.0
+
     a = rand(B.atoms);
     ΔE = spinFlipDeltaEnergy(B,a);
     if ΔE < 0
@@ -224,11 +227,11 @@ function moleculeJoin(B::Box)::Double
     # energy is now fast to calculate
     ΔE = energy(nup_tilde,ndn_tilde, B.J,B.H) - energy(nup,ndn, B.J,B.H);
 
-    prob = factorialRatio(nup,nup_tilde)*
-           factorialRatio(ndn,ndn_tilde)/
-           (2*nmol+2)*
-           exp(-ΔE/B.T);
-
+    # prob = factorialRatio(nup,nup_tilde)*
+    #        factorialRatio(ndn,ndn_tilde)/
+    #        (2*nmol+2)*
+    #        exp(-ΔE/B.T);
+    prob = exp(-ΔE/B.T);
     if rand() < prob
         # accept the joining
         # remove the two atoms from box1
@@ -273,12 +276,12 @@ function moleculeSplit(B)::Double
     ΔE = energy(nup_tilde,ndn_tilde, B.J,B.H) - energy(nup,ndn, B.J,B.H);
     # println("Delta: ",ΔE)
 
-    prob = factorialRatio(nup,nup_tilde)*
-           factorialRatio(ndn,ndn_tilde)*
-           2*nmol*
-           exp(-ΔE/B.T);
-    # println("Prob: $prob")
-
+    # prob = factorialRatio(nup,nup_tilde)*
+    #        factorialRatio(ndn,ndn_tilde)*
+    #        2*nmol*
+    #        exp(-ΔE/B.T);
+    prob = exp(-ΔE/B.T);
+           
     if rand()<prob
         # accepted
         # println("accepted")
