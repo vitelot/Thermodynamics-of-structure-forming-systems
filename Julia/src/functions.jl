@@ -48,15 +48,31 @@ function spinFlipDeltaEnergy(B::Box, atom::Atom)
 end
 
 """
-Do one montecarlo move and return the delta energy
+Do one montecarlo move and return the delta energy;
+the kind of move is proportional to the nr of possible one-moves of that kind. 
 """
 function oneMove(B::Box)::Double
 
-    if rand() < spinFlipProbability
-        return spinFlipMove(B);
-    end
+    na = atomNumber(B);
+    nm = moleculeNumber(B);
 
-    return moleculeMove(B);
+    p::Vector{Double} = [na, 0.5*na*(na-1), nm];
+    p = p ./ sum(p);
+    r = rand();
+    if r < p[1]
+        return spinFlipMove(B);
+    elseif r < p[2]+p[1] 
+        if na <= fractionMinNrFreeAtoms*B.N 
+            return 0.0;
+        end
+        return moleculeJoin(B);
+    end
+    return moleculeSplit(B);
+    
+    # if rand() < spinFlipProbability
+    # return spinFlipMove(B);
+    # end
+    # return moleculeMove(B);
 end
 
 """
@@ -71,6 +87,13 @@ return the number of molecules in the box
 """
 function moleculeNumber(B::Box)::Int
     return length(B.molecules);
+end
+
+"""
+return the number of free atoms in the box
+"""
+function atomNumber(B::Box)::Int
+    return B.M[1] + B.M[-1];;
 end
 
 function multiTemperature(B::Box)::DataFrame

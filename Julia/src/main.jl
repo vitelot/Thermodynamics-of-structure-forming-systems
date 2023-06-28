@@ -15,7 +15,7 @@ function main()
         Results = multiTemperature(B);
     end
     # println("Atoms:$(B.M[1]+B.M[-1]) Magnetization:$(B.M[1]-B.M[-1]) Molecules:$(length(B.molecules))");
-    filetext = "_N=$(B.N)_Tmin=$(Tmin)_Tstep=$(Tstep)_Tmax=$(Tmax)_sFP=$(spinFlipProbability)";
+    filetext = "_N=$(B.N)_Tmin=$(Tmin)_Tstep=$(Tstep)_Tmax=$(Tmax)_fMA=$(fractionMinNrFreeAtoms)";
     saveResults && CSV.write("results$filetext.csv", Results);
     
     final_results = analyze(Results);
