@@ -2,6 +2,8 @@
 Montecarlo simulation of structure-forming systems
 """
 
+@info "Including libraries and compiling";
+
 include("extern.jl");
 include("parameters.jl");
 include("functions.jl");

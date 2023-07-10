@@ -67,7 +67,7 @@ function createIniFile(file::String)
 #############################
 Ntot        200     # total nr of particles
 Hfield      0.0     # external magnetic field
-Jcoupling   0.5     # spin-spin coupling
+Jcoupling   1.0     # spin-spin coupling
 #############################
 fractionMinNrFreeAtoms 1.0    # free atoms cannot drop under this fraction
 #############################
