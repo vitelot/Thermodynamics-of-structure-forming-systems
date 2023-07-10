@@ -1,7 +1,11 @@
 function initializeBox()::Box
-    N = Ntot;
+    Ntot::Int = Opt["Ntot"];
+    Tmin::Double = Opt["Tmin"];
+    Jcoupling::Double = Opt["Jcoupling"];
+    Hfield::Double = Opt["Hfield"];
+
     Atoms = Atom[];
-    for i=1:N
+    for i=1:Ntot
         push!(Atoms, Atom(i,rand([-1,1])));
     end
     nup = count(x->x.σ>0, Atoms);
@@ -52,6 +56,7 @@ Do one montecarlo move and return the delta energy;
 the kind of move is proportional to the nr of possible one-moves of that kind. 
 """
 function oneMove(B::Box)::Double
+    fractionMinNrFreeAtoms::Double = Opt["fractionMinNrFreeAtoms"];
 
     na = atomNumber(B);
     nm = moleculeNumber(B);
@@ -97,6 +102,10 @@ function atomNumber(B::Box)::Int
 end
 
 function multiTemperature(B::Box)::DataFrame
+    Tmin::Double  = Opt["Tmin"];
+    Tstep::Double = Opt["Tstep"];
+    Tmax::Double  = Opt["Tmax"];
+
     Results  = DataFrame(
                 temperature=Double[],
                 j_coupling=Double[],
@@ -123,6 +132,11 @@ end
 # end
 
 function multiTemperature_parallel(B::Box)::DataFrame
+
+    Tmin::Double  = Opt["Tmin"];
+    Tstep::Double = Opt["Tstep"];
+    Tmax::Double  = Opt["Tmax"];
+    
     Results  = DataFrame(
                 temperature=Double[],
                 j_coupling=Double[],
@@ -162,7 +176,10 @@ function multiTemperature_parallel(B::Box)::DataFrame
 end
 
 function montecarlo!(B::Box, Results::DataFrame)::Nothing
-    
+    termalisationSteps::Int = Opt["termalisationSteps"];
+    Steps::Int = Opt["Steps"];
+    avrgStep::Int = Opt["avrgStep"];
+
     en = energy(B);
     
     for _ in 1:termalisationSteps

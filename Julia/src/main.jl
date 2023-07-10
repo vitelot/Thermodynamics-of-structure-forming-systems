@@ -8,6 +8,16 @@ include("functions.jl");
 include("analysis.jl");
 
 function main()
+    loadParameters("par.ini");
+
+    Tmin::Double  = Opt["Tmin"];
+    Tstep::Double = Opt["Tstep"];
+    Tmax::Double  = Opt["Tmax"];
+    fractionMinNrFreeAtoms::Double = Opt["fractionMinNrFreeAtoms"];
+    saveResults::Bool = Opt["saveResults"];
+    doPlot::Bool = Opt["doPlot"];
+    goParallel::Bool = Opt["goParallel"];
+
     B = initializeBox();
     if goParallel
         Results = multiTemperature_parallel(B);
@@ -21,7 +31,7 @@ function main()
     final_results = analyze(Results);
     saveResults && CSV.write("final_results$filetext.csv", final_results);
     
-    if doPlot
+    if Opt["doPlot"]
         if length(unique(final_results.temperature))<2
             println("Less than 2 temperature runs found. No plot.");
             println("$final_results");

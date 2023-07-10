@@ -5,7 +5,13 @@
 using CSV, DataFrames, Plots, Statistics;
 import Base.copy;
 
+###################################
+###       Global variables      ###
+# ProgramVersion = v"0.4.2";
+Opt = Dict{String,Any}(); # options read from par.ini
+
 Double = Float64;
+###################################
 
 # structures
 mutable struct Atom
