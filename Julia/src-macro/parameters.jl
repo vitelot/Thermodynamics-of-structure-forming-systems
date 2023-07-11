@@ -38,6 +38,7 @@ function loadParameters(file::String)
         if(key=="Ntot")                       Opt[key] = parse(Int, val)
         elseif(key=="Hfield")                 Opt[key] = parse(Double, val)
         elseif(key=="Jcoupling")              Opt[key] = parse(Double, val)
+        elseif(key=="initialSpinUpFraction")  Opt[key] = parse(Double, val)
         elseif(key=="fractionMinNrFreeAtoms") Opt[key] = parse(Double, val)
         ####################################################################
         elseif(key=="Tmin")         Opt[key] = parse(Double, val)
@@ -67,9 +68,10 @@ function createIniFile(file::String)
 #############################
 Ntot        200     # total nr of particles
 Hfield      0.0     # external magnetic field
-Jcoupling   0.5     # spin-spin coupling
+Jcoupling   1.0     # spin-spin coupling
 #############################
-fractionMinNrFreeAtoms 1.0    # free atoms cannot drop under this fraction
+initialSpinUpFraction  0.5    # initialize the system with this spin up fraction
+fractionMinNrFreeAtoms 0.0    # free atoms cannot drop under this fraction
 #############################
 Tmin        0.0     # minimum temperature
 Tstep       0.2     # temperature increasing step (can be negative in case Tmin>Tmax)

@@ -2,6 +2,8 @@
 Montecarlo simulation of structure-forming systems
 """
 
+@info "Including libraries and compiling";
+
 include("extern.jl");
 include("parameters.jl");
 include("functions.jl");
@@ -17,6 +19,7 @@ function main()
     saveResults::Bool = Opt["saveResults"];
     doPlot::Bool = Opt["doPlot"];
     goParallel::Bool = Opt["goParallel"];
+    nup0::Double = Opt["initialSpinUpFraction"];
 
     B = initializeBox();
     if goParallel
@@ -25,7 +28,7 @@ function main()
         Results = multiTemperature(B);
     end
     # println("Atoms:$(B.M[1]+B.M[-1]) Magnetization:$(B.M[1]-B.M[-1]) Molecules:$(length(B.molecules))");
-    filetext = "_N=$(B.N)_Tmin=$(Tmin)_Tstep=$(Tstep)_Tmax=$(Tmax)_fMA=$(fractionMinNrFreeAtoms)";
+    filetext = "_N=$(B.N)_Tmin=$(Tmin)_Tstep=$(Tstep)_Tmax=$(Tmax)_nup0=$(nup0)_fMA=$(fractionMinNrFreeAtoms)";
     saveResults && CSV.write("results$filetext.csv", Results);
     
     final_results = analyze(Results);
@@ -36,6 +39,7 @@ function main()
             println("Less than 2 temperature runs found. No plot.");
             println("$final_results");
         else
+            @info "Generating the figure";
             p=plotall(final_results)
             savefig(p,"results$filetext.pdf");
         end    
