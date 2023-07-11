@@ -3,9 +3,9 @@ function initializeBox()::Box
     Tmin::Double = Opt["Tmin"];
     Jcoupling::Double = Opt["Jcoupling"];
     Hfield::Double = Opt["Hfield"];
-
+     
     # zero initial magnetization
-    nup = Ntot÷2;
+    nup::Int = floor(Opt["initialSpinUpFraction"]*Ntot);
     ndn = Ntot-nup;
 
     Nmol = 0;
