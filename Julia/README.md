@@ -52,7 +52,8 @@ goParallel  0       # try multi-threading <br>
 
 The next executions of `julia --project=.. main.jl` will read the previous file and run the simulation in the temperature range specified.
 
-**Important:** In the sequential runs, *the initial configuration is taken from the previous temperature state.* **This allows to observe hysteresis cycles.**
+**Important:** In the sequential runs, *the initial configuration is taken from the previous temperature state.* 
+**This allows us to observe hysteresis cycles.**
 
 ### 2.3 Running the multi-threading simulation
 First, you need to set the `goParallel` option in the `par.ini` to `1`.
@@ -60,7 +61,8 @@ First, you need to set the `goParallel` option in the `par.ini` to `1`.
 Second, execute the command
 `julia -t x --project=.. main.jl`
 with `x` set to the number of cores you would like to use.
-**Important:** In the in the multi-threading runs, *the initial configuration is always set according to the `initialSpinUpFraction` defined in the `par.ini` file. Therefore, **Hysteresis cannot be reproduced.**
+**Important:** In the in the multi-threading runs, *the initial configuration is always set according to the `initialSpinUpFraction` defined in the `par.ini` file.*
+Therefore, **Hysteresis cannot be reproduced.**
 
 ## 3. Multiplicity table
 In the macro-simulation we use the following transition multiplicities:
