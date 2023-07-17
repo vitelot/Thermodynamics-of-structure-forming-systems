@@ -15,18 +15,13 @@ In the second one, we follow every atom singularly. This variant is useful when 
 
 ### 2.1 Preparation
 You have to do the following steps only once.
-**First of all**, of course, you need to install the Julia language binaries. Download Julia from the official source repository: [Julia download](https://julialang.org/downloads/).
 
-**Second**, enter the `Julia` folder.
-
-**Third**, run the command `julia --project`. This opens the Julia REPL (read-eval-print loop) and loads the environment.
-
-**Fourth**, enter the package manager by typing `]`.
-
-**Fifth**, execute the command `instantiate`. This will load the packages needed by the simulation.
-
-**Sixth**, exit the package manager with a backspace and exit julia with `^d`.
-
+- **First of all**, you need to install the Julia language binaries. Download Julia from the official source repository: [Julia download](https://julialang.org/downloads/).
+- **Second**, enter the `Julia` folder.
+- **Third**, run the command `julia --project`. This opens the Julia REPL (read-eval-print loop) and loads the environment.
+- **Fourth**, enter the package manager by typing `]`.
+- **Fifth**, execute the command `instantiate`. This will load the packages needed by the simulation.
+- **Sixth**, exit the package manager with a backspace and exit julia with `^d`.
 
 ### 2.2 Running the simulation sequentially
 Let's suppose you would like to run the macro simulation.
