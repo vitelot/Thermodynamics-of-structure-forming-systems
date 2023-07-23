@@ -41,9 +41,9 @@ function loadParameters(file::String)
         elseif(key=="initialSpinUpFraction")  Opt[key] = parse(Double, val)
         elseif(key=="fractionMinNrFreeAtoms") Opt[key] = parse(Double, val)
         ####################################################################
-        elseif(key=="thermalisationSteps")   Opt[key] = parse(Int, val)
-        elseif(key=="Steps")                Opt[key] = parse(Int, val)
-        elseif(key=="avrgStep")            Opt[key] = parse(Int, val)
+        elseif(key=="thermalisationSteps")  Opt[key] = round(Int, parse(Float64, val))
+        elseif(key=="Steps")                Opt[key] = round(Int, parse(Float64, val))
+        elseif(key=="avrgStep")             Opt[key] = round(Int, parse(Float64, val))
         ####################################################################
         elseif(key=="Tmin")                 Opt[key] = parse(Double, val)
         elseif(key=="Tstep")                Opt[key] = parse(Double, val)
@@ -82,9 +82,9 @@ Jcoupling   1.0     # spin-spin coupling
 initialSpinUpFraction  0.5    # initialize the system with this spin up fraction
 fractionMinNrFreeAtoms 0.0    # free atoms cannot drop under this fraction
 #############################
-thermalisationSteps       0    # if <= 0 use the default: Ntot^2/2
-Steps                    0    # steps used for each temperature; if <= 0 use the default: 100*thermalisationSteps
-avrgStep                 0    # steps interval used to calculate averages; if <= 0 use the default: sqrt(Steps)
+thermalisationSteps      0    # if <= 0 use the default: Ntot^2/2; (scientific notation allowed, e.g., 1e6)
+Steps                    0    # steps used for each temperature; if <= 0 use the default: 100*thermalisationSteps; (scientific notation allowed, e.g., 1e6)
+avrgStep                 0    # steps interval used to calculate averages; if <= 0 use the default: sqrt(Steps); (scientific notation allowed, e.g., 1e6)
 #############################
 Tmin        0.0     # minimum temperature
 Tstep       0.2     # temperature increasing step (can be negative in case Tmin>Tmax)
