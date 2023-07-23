@@ -176,13 +176,13 @@ function multiTemperature_parallel(B::Box)::DataFrame
 end
 
 function montecarlo!(B::Box, Results::DataFrame)::Nothing
-    termalisationSteps::Int = Opt["termalisationSteps"];
+    thermalisationSteps::Int = Opt["thermalisationSteps"];
     Steps::Int = Opt["Steps"];
     avrgStep::Int = Opt["avrgStep"];
 
     en = energy(B);
     
-    for _ in 1:termalisationSteps
+    for _ in 1:thermalisationSteps
         en += oneMove(B);
     end
     
