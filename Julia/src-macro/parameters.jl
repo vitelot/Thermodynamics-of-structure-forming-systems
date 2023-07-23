@@ -41,20 +41,29 @@ function loadParameters(file::String)
         elseif(key=="initialSpinUpFraction")  Opt[key] = parse(Double, val)
         elseif(key=="fractionMinNrFreeAtoms") Opt[key] = parse(Double, val)
         ####################################################################
-        elseif(key=="Tmin")         Opt[key] = parse(Double, val)
-        elseif(key=="Tstep")        Opt[key] = parse(Double, val)
-        elseif(key=="Tmax")         Opt[key] = parse(Double, val)
+        elseif(key=="termalisationSteps")   Opt[key] = parse(Int, val)
+        elseif(key=="Steps")                Opt[key] = parse(Int, val)
+        elseif(key=="avrgStep")            Opt[key] = parse(Int, val)
+        ####################################################################
+        elseif(key=="Tmin")                 Opt[key] = parse(Double, val)
+        elseif(key=="Tstep")                Opt[key] = parse(Double, val)
+        elseif(key=="Tmax")                 Opt[key] = parse(Double, val)
         ####################################################################
         elseif(key=="saveResults")   Opt[key] = parse(Bool, val)
         elseif(key=="doPlot")        Opt[key] = parse(Bool, val)
         elseif(key=="goParallel")    Opt[key] = parse(Bool, val)
         ####################################################################
-        else println("WARNING: input parameter $key does not exist")
+        else @warn "WARNING: input parameter $key does not exist";
         end
     end
-    Opt["termalisationSteps"] = Opt["Ntot"]*Opt["Ntot"]÷2; # run these nr of steps at the beginning discarding the energy
-    Opt["Steps"]              = 100*Opt["termalisationSteps"]; # total nr of steps
-    Opt["avrgStep"]           = floor(Int, sqrt(Opt["Steps"])); # used to estimate the average energy
+    ts = Opt["termalisationSteps"];
+    Opt["termalisationSteps"] = ifelse(ts>0, ts, Opt["Ntot"]*Opt["Ntot"]÷2); # run these nr of steps at the beginning discarding the energy
+
+    st = Opt["Steps"];
+    Opt["Steps"]              = ifelse(st>0, st, 100*Opt["termalisationSteps"]); # total nr of steps
+
+    av = Opt["avrgStep"];
+    Opt["avrgStep"]           = ifelse(av>0, av, floor(Int, sqrt(Opt["Steps"]))); # used to estimate the average energy
 
     @info("Parameters loaded, starting the program.")
 end
@@ -72,6 +81,10 @@ Jcoupling   1.0     # spin-spin coupling
 #############################
 initialSpinUpFraction  0.5    # initialize the system with this spin up fraction
 fractionMinNrFreeAtoms 0.0    # free atoms cannot drop under this fraction
+#############################
+termalisationSteps       0    # if <= 0 use the default: Ntot^2/2
+Steps                    0    # steps used for each temperature; if <= 0 use the default: 100*termalisationSteps
+avrgStep                 0    # steps interval used to calculate averages; if <= 0 use the default: sqrt(Steps)
 #############################
 Tmin        0.0     # minimum temperature
 Tstep       0.2     # temperature increasing step (can be negative in case Tmin>Tmax)
