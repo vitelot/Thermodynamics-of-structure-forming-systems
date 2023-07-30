@@ -43,9 +43,11 @@ end
 
 """
 Do one montecarlo move and return the delta energy;
-the kind of move is proportional to the nr of possible one-moves of that kind. 
+Returns 0.0 if the move is not accepted;
+The kind of move is proportional to the nr of possible one-move configurations of that kind,
+i.e., we minimize the free energy F = E -TS. 
 """
-function oneMove(B::Box)::Double
+function oneMove!(B::Box)::Double
     fractionMinNrFreeAtoms::Double = Opt["fractionMinNrFreeAtoms"];
 
     na = atomNumber(B);
@@ -79,21 +81,21 @@ function oneMove(B::Box)::Double
 
     r = rand();
     if r < p[1]
-        return spinFlipDnToUp(B);
+        return spinFlipDnToUp!(B);
     elseif r < p[2] 
-        return spinFlipUpToDn(B);
+        return spinFlipUpToDn!(B);
     elseif r < p[3]
-        return moleculeJoin2Up(B);
+        return moleculeJoin2Up!(B);
     elseif r < p[4]
-        return moleculeJoin2Dn(B);   
+        return moleculeJoin2Dn!(B);   
     elseif r < p[5]
-        return moleculeJoinUpDn(B);
+        return moleculeJoinUpDn!(B);
     elseif r < p[6]
-        return moleculeSplit2Up(B);
+        return moleculeSplit2Up!(B);
     elseif r < p[7]
-        return moleculeSplit2Dn(B);
+        return moleculeSplit2Dn!(B);
     else
-        return moleculeSplit2UpDn(B);
+        return moleculeSplit2UpDn!(B);
     end
 end
 
@@ -194,19 +196,34 @@ end
 
 function montecarlo!(B::Box, Results::DataFrame)::Nothing
     thermalisationSteps::Int = Opt["thermalisationSteps"];
-    Steps::Int = Opt["Steps"];
-    avrgStep::Int = Opt["avrgStep"];
+    Steps::Int     = Opt["Steps"];
+    avrgStep::Int  = Opt["avrgStep"];
+    verbosity::Int = Opt["verbosity"];
+    onlyAccepted   = Opt["onlyAccepted"];
 
-    en = energy(B);
-    
-    for _ in 1:thermalisationSteps
-        en += oneMove(B);
+    wastedmoves = 0;
+    for i in 1:thermalisationSteps
+        ΔE = oneMove!(B);
+        if onlyAccepted
+            while ΔE == 0.0
+                ΔE = oneMove!(B);
+                wastedmoves += 1;
+            end
+        end
     end
+    verbosity >= 1 && @info "$wastedmoves wasted moves during $thermalisationSteps thermalisation steps";
     
-    sumEnergy = en;
+    sumEnergy = en = energy(B);
     for i in 1:Steps # do at max Step steps
+
+        ΔE = oneMove!(B);
+        if onlyAccepted
+            while ΔE == 0.0
+                ΔE = oneMove!(B);
+            end
+        end
         
-        en += oneMove(B);
+        en += ΔE;
 
         sumEnergy += en; 
         # push!(Elist, en);
@@ -220,7 +237,7 @@ function montecarlo!(B::Box, Results::DataFrame)::Nothing
     return;
 end
 
-function spinFlipDnToUp(B::Box)
+function spinFlipDnToUp!(B::Box)
     nup = B.nup;
     ndn = B.ndn;
     nup_tilde = nup+1;
@@ -234,7 +251,7 @@ function spinFlipDnToUp(B::Box)
     return 0.0; # flipping discarded
 end
 
-function spinFlipUpToDn(B::Box)
+function spinFlipUpToDn!(B::Box)
     nup = B.nup;
     ndn = B.ndn;
     nup_tilde = nup-1;
@@ -248,7 +265,7 @@ function spinFlipUpToDn(B::Box)
     return 0.0; # flipping discarded
 end
 
-function moleculeJoin2Up(B::Box)
+function moleculeJoin2Up!(B::Box)
     
     if B.nup <2 
         @info "No 2 spin up atoms available to join";
@@ -271,7 +288,7 @@ function moleculeJoin2Up(B::Box)
 
 end
 
-function moleculeJoin2Dn(B::Box)
+function moleculeJoin2Dn!(B::Box)
     
     if B.ndn <2 
         @info "No 2 spin dn atoms available to join";
@@ -294,7 +311,7 @@ function moleculeJoin2Dn(B::Box)
 
 end
 
-function moleculeJoinUpDn(B::Box)
+function moleculeJoinUpDn!(B::Box)
     
     if B.ndn < 1 || B.nup < 1
         @info "No spin dn and up atoms available to join";
@@ -316,7 +333,7 @@ function moleculeJoinUpDn(B::Box)
     return 0.0; # flipping discarded
 end
 
-function moleculeSplit2Up(B::Box)
+function moleculeSplit2Up!(B::Box)
     
     if B.Nmol < 1 
         @info "No molecules to split in 2 up atoms";
@@ -338,7 +355,7 @@ function moleculeSplit2Up(B::Box)
     return 0.0; # flipping discarded
 end
 
-function moleculeSplit2Dn(B::Box)
+function moleculeSplit2Dn!(B::Box)
     
     if B.Nmol < 1 
         @info "No molecules to split in 2 up atoms";
@@ -360,7 +377,7 @@ function moleculeSplit2Dn(B::Box)
     return 0.0; # flipping discarded
 end
 
-function moleculeSplit2UpDn(B::Box)
+function moleculeSplit2UpDn!(B::Box)
     
     if B.Nmol < 1 
         @info "No molecules to split in 2 up atoms";
