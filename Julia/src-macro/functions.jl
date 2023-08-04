@@ -167,8 +167,8 @@ function multiTemperature_parallel(B::Box)::DataFrame
                 );
     nthreads = Threads.nthreads();
     if nthreads == 1
-        println("You have only one thread selected. If you have more, pls run julia with --threads n");
-        println("Going on sequentially: no parallelization\n");
+        @info("You have only one thread selected. If you want more, pls run julia with --threads n");
+        @info("\tGoing on sequentially: no parallelization\n");
         return multiTemperature(B);
     end
 
@@ -195,11 +195,12 @@ function multiTemperature_parallel(B::Box)::DataFrame
 end
 
 function montecarlo!(B::Box, Results::DataFrame)::Nothing
+
     thermalisationSteps::Int = Opt["thermalisationSteps"];
-    Steps::Int     = Opt["Steps"];
-    avrgStep::Int  = Opt["avrgStep"];
-    verbosity::Int = Opt["verbosity"];
-    onlyAccepted   = Opt["onlyAccepted"];
+    Steps::Int               = Opt["Steps"];
+    avrgStep::Int            = Opt["avrgStep"];
+    verbosity::Int           = Opt["verbosity"];
+    onlyAccepted::Bool       = Opt["onlyAccepted"];
 
     wastedmoves = 0;
     for i in 1:thermalisationSteps
@@ -230,7 +231,8 @@ function montecarlo!(B::Box, Results::DataFrame)::Nothing
         if i%avrgStep == 0
             avrg = sumEnergy/i;
             push!(Results, 
-                (B.T, B.J, B.H, i, avrg, abs(magnetisation(B)), moleculeNumber(B))
+                # (B.T, B.J, B.H, i, avrg, abs(magnetisation(B)), moleculeNumber(B))
+                (B.T, B.J, B.H, i, avrg, magnetisation(B), moleculeNumber(B))
             );
         end
     end
