@@ -3,6 +3,7 @@ function initializeBox()::Box
     Tmin::Double = Opt["Tmin"];
     Jcoupling::Double = Opt["Jcoupling"];
     Hfield::Double = Opt["Hfield"];
+    molEF::Double = Opt["MolEnFormation"];
      
     # zero initial magnetization
     nup::Int = floor(Opt["initialSpinUpFraction"]*Ntot);
@@ -15,6 +16,7 @@ function initializeBox()::Box
             Tmin,
             Jcoupling,
             Hfield,
+            molEF, # molecule energy formation
             nup, # random spins
             ndn,
             Ntot, # all atom free 
@@ -27,10 +29,10 @@ end
 """
     Energy of the system given spin population and parameters
 """
-function energy(nup::Int,ndn::Int,J_coupling::Double,H_field::Double)::Double
+function energy(nup::Int,ndn::Int,nmol::Int,J_coupling::Double,H_field::Double,molEF::Double)::Double
     n = nup+ndn;
     m = nup-ndn;
-    return (n-m*m)*J_coupling/(n-1) - H_field * m;
+    return (n-m*m)*J_coupling/(n-1) - H_field * m + nmol*molEF;
 end
 
 """
@@ -38,7 +40,7 @@ end
 """
 function energy(B::Box)::Double
 
-    return energy(B.nup, B.ndn, B.J, B.H); 
+    return energy(B.nup, B.ndn, B.Nmol, B.J, B.H, B.molEF); 
 end
 
 """
@@ -242,9 +244,13 @@ end
 function spinFlipDnToUp!(B::Box)
     nup = B.nup;
     ndn = B.ndn;
+    nmol= B.Nmol;
+
     nup_tilde = nup+1;
     ndn_tilde = ndn-1;
-    ΔE = energy(nup_tilde,ndn_tilde, B.J,B.H) - energy(nup,ndn, B.J,B.H); 
+    nmol_tilde = nmol;
+
+    ΔE = energy(nup_tilde,ndn_tilde, nmol_tilde, B.J,B.H, B.molEF) - energy(nup,ndn, nmol, B.J,B.H, B.molEF); 
     if ΔE < 0 || rand()<exp(-ΔE/B.T)
         B.nup = nup_tilde;
         B.ndn = ndn_tilde;
@@ -256,9 +262,13 @@ end
 function spinFlipUpToDn!(B::Box)
     nup = B.nup;
     ndn = B.ndn;
+    nmol= B.Nmol;
+
     nup_tilde = nup-1;
     ndn_tilde = ndn+1;
-    ΔE = energy(nup_tilde,ndn_tilde, B.J,B.H) - energy(nup,ndn, B.J,B.H); 
+    nmol_tilde = nmol;
+
+    ΔE = energy(nup_tilde,ndn_tilde, nmol_tilde, B.J,B.H, B.molEF) - energy(nup,ndn, nmol, B.J,B.H, B.molEF); 
     if ΔE < 0 || rand()<exp(-ΔE/B.T)
         B.nup = nup_tilde;
         B.ndn = ndn_tilde;
@@ -276,9 +286,13 @@ function moleculeJoin2Up!(B::Box)
 
     nup = B.nup;
     ndn = B.ndn;
+    nmol= B.Nmol;
+
     nup_tilde = nup-2;
     ndn_tilde = ndn;
-    ΔE = energy(nup_tilde,ndn_tilde, B.J,B.H) - energy(nup,ndn, B.J,B.H); 
+    nmol_tilde = nmol+1;
+
+    ΔE = energy(nup_tilde,ndn_tilde, nmol_tilde, B.J,B.H, B.molEF) - energy(nup,ndn, nmol, B.J,B.H, B.molEF); 
     if ΔE < 0 || rand()<exp(-ΔE/B.T)
         B.nup = nup_tilde;
         B.ndn = ndn_tilde;
@@ -299,9 +313,13 @@ function moleculeJoin2Dn!(B::Box)
 
     nup = B.nup;
     ndn = B.ndn;
+    nmol= B.Nmol;
+
     nup_tilde = nup;
     ndn_tilde = ndn-2;
-    ΔE = energy(nup_tilde,ndn_tilde, B.J,B.H) - energy(nup,ndn, B.J,B.H); 
+    nmol_tilde = nmol+1;
+
+    ΔE = energy(nup_tilde,ndn_tilde, nmol_tilde, B.J,B.H, B.molEF) - energy(nup,ndn, nmol, B.J,B.H, B.molEF); 
     if ΔE < 0 || rand()<exp(-ΔE/B.T)
         B.nup = nup_tilde;
         B.ndn = ndn_tilde;
@@ -322,9 +340,13 @@ function moleculeJoinUpDn!(B::Box)
 
     nup = B.nup;
     ndn = B.ndn;
+    nmol= B.Nmol;
+
     nup_tilde = nup-1;
     ndn_tilde = ndn-1;
-    ΔE = energy(nup_tilde,ndn_tilde, B.J,B.H) - energy(nup,ndn, B.J,B.H); 
+    nmol_tilde = nmol+1;
+
+    ΔE = energy(nup_tilde,ndn_tilde, nmol_tilde, B.J,B.H, B.molEF) - energy(nup,ndn, nmol, B.J,B.H, B.molEF); 
     if ΔE < 0 || rand()<exp(-ΔE/B.T)
         B.nup = nup_tilde;
         B.ndn = ndn_tilde;
@@ -344,9 +366,13 @@ function moleculeSplit2Up!(B::Box)
 
     nup = B.nup;
     ndn = B.ndn;
+    nmol= B.Nmol;
+
     nup_tilde = nup+2;
     ndn_tilde = ndn;
-    ΔE = energy(nup_tilde,ndn_tilde, B.J,B.H) - energy(nup,ndn, B.J,B.H); 
+    nmol_tilde = nmol-1;
+
+    ΔE = energy(nup_tilde,ndn_tilde, nmol_tilde, B.J,B.H, B.molEF) - energy(nup,ndn, nmol, B.J,B.H, B.molEF); 
     if ΔE < 0 || rand()<exp(-ΔE/B.T)
         B.nup = nup_tilde;
         B.ndn = ndn_tilde;
@@ -366,9 +392,13 @@ function moleculeSplit2Dn!(B::Box)
 
     nup = B.nup;
     ndn = B.ndn;
+    nmol= B.Nmol;
+
     nup_tilde = nup;
     ndn_tilde = ndn+2;
-    ΔE = energy(nup_tilde,ndn_tilde, B.J,B.H) - energy(nup,ndn, B.J,B.H); 
+    nmol_tilde = nmol-1;
+
+    ΔE = energy(nup_tilde,ndn_tilde, nmol_tilde, B.J,B.H, B.molEF) - energy(nup,ndn, nmol, B.J,B.H, B.molEF); 
     if ΔE < 0 || rand()<exp(-ΔE/B.T)
         B.nup = nup_tilde;
         B.ndn = ndn_tilde;
@@ -388,9 +418,13 @@ function moleculeSplit2UpDn!(B::Box)
 
     nup = B.nup;
     ndn = B.ndn;
+    nmol= B.Nmol;
+
     nup_tilde = nup+1;
     ndn_tilde = ndn+1;
-    ΔE = energy(nup_tilde,ndn_tilde, B.J,B.H) - energy(nup,ndn, B.J,B.H); 
+    nmol_tilde = nmol-1;
+
+    ΔE = energy(nup_tilde,ndn_tilde, nmol_tilde, B.J,B.H, B.molEF) - energy(nup,ndn, nmol, B.J,B.H, B.molEF); 
     if ΔE < 0 || rand()<exp(-ΔE/B.T)
         B.nup = nup_tilde;
         B.ndn = ndn_tilde;

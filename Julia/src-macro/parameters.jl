@@ -1,5 +1,3 @@
-DEBUG = 3;
-
 function loadParameters(file::String)
     
     if !isfile(file)
@@ -12,11 +10,12 @@ function loadParameters(file::String)
         length(df) < 2 && continue # ignore empty lines
         key = df[1] ; val = df[2]
         ####################################################################
-        # if(key=="Version")                  Opt[key] = val
+        if(key=="Version")                    Opt[key] = val
         ####################################################################
-        if(key=="Ntot")                       Opt[key] = parse(Int, val)
+        elseif(key=="Ntot")                   Opt[key] = parse(Int, val)
         elseif(key=="Hfield")                 Opt[key] = parse(Double, val)
         elseif(key=="Jcoupling")              Opt[key] = parse(Double, val)
+        elseif(key=="MolEnFormation")         Opt[key] = parse(Double, val)
         elseif(key=="initialSpinUpFraction")  Opt[key] = parse(Double, val)
         elseif(key=="fractionMinNrFreeAtoms") Opt[key] = parse(Double, val)
         ####################################################################
@@ -37,6 +36,16 @@ function loadParameters(file::String)
         else @warn "WARNING: input parameter $key does not exist";
         end
     end
+
+    if VersionNumber(Opt["Version"]) != ProgramVersion
+        println("""
+                The par.ini file corresponds to an older version of the program.
+                Delete it and rerun the simulation to create a new one.
+                Version found: $(Opt["Version"]) --- Current version: $ProgramVersion
+                """);
+        exit(1);
+    end
+
     ts = Opt["thermalisationSteps"];
     Opt["thermalisationSteps"] = ifelse(ts>0, ts, Opt["Ntot"]*Opt["Ntot"]÷2); # run these nr of steps at the beginning discarding the energy
 
@@ -56,9 +65,12 @@ function createIniFile(file::String)
 """
 #key                    value
 #############################
+Version     $ProgramVersion   # Program's version
+#############################
 Ntot        200     # total nr of particles
 Hfield      0.0     # external magnetic field
 Jcoupling   1.0     # spin-spin coupling
+MolEnFormation 0.0  # molecule energy formation; can be of both signs
 #############################
 initialSpinUpFraction  0.5    # initialize the system with this spin up fraction
 fractionMinNrFreeAtoms 0.0    # free atoms cannot drop under this fraction
@@ -79,8 +91,8 @@ goParallel   0       # try multi-threading
 #############################
 """
 )
-    close(INI)
-    println("Parameter file \"$file\" was missing and a default one was created.\nPlease edit it and rerun.")
-    exit()
+    close(INI);
+    println("Parameter file \"$file\" was missing and a default one was created.\nPlease edit it and rerun.");
+    exit();
 
 end

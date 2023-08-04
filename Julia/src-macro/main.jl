@@ -16,6 +16,7 @@ function main()
     Tstep::Double = Opt["Tstep"];
     Tmax::Double  = Opt["Tmax"];
     fractionMinNrFreeAtoms::Double = Opt["fractionMinNrFreeAtoms"];
+    molEnergyFormation::Double = Opt["MolEnFormation"];
     saveResults::Bool = Opt["saveResults"];
     doPlot::Bool = Opt["doPlot"];
     goParallel::Bool = Opt["goParallel"];
@@ -28,7 +29,7 @@ function main()
         Results = multiTemperature(B);
     end
     # println("Atoms:$(B.M[1]+B.M[-1]) Magnetization:$(B.M[1]-B.M[-1]) Molecules:$(length(B.molecules))");
-    filetext = "_N=$(B.N)_Tmin=$(Tmin)_Tstep=$(Tstep)_Tmax=$(Tmax)_nup0=$(nup0)_fMA=$(fractionMinNrFreeAtoms)";
+    filetext = "_N=$(B.N)_Tmin=$(Tmin)_Tstep=$(Tstep)_Tmax=$(Tmax)_nup0=$(nup0)_fMA=$(fractionMinNrFreeAtoms)_mEF=$(molEnergyFormation)";
     saveResults && CSV.write("results$filetext.csv", Results);
     
     final_results = analyze(Results);

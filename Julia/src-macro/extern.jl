@@ -7,29 +7,23 @@ using CSV, DataFrames, Plots, Statistics;
 
 ###################################
 ###       Global variables      ###
-# ProgramVersion = v"0.4.2";
+ProgramVersion = v"0.1.1";
 Opt = Dict{String,Any}(); # options read from par.ini
 
-Double = Float64;
+Double = Float64; # I hate writing Float64, I love C
 ###################################
 
-# # structures
-# mutable struct Atom
-#     id::Int; # identification number
-#     σ::Int;  # spin (±1, for the moment)
-#     # isfree::Bool; # true if this atom is not combined
-# end
-
-# mutable struct Molecule
-#     # natoms::Int; # number of atoms composing the molecule
-#     atoms::Vector{Atom}; # the atoms composing the molecule
-# end
+# structures
 
 mutable struct Box # the simulation box
+    ### Static params ###
     N::Int; # total nr of atoms in the box
     T::Double; # temperature
     J::Double; # spin-spin coupling
     H::Double; # external magnetic field
+    molEF::Double; # molecule energy formation
+    
+    ### Dynamical params ###
     nup::Int; # number of up atoms
     ndn::Int; # number of dn atoms
     Nfree::Int; # number of free atoms
